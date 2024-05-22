@@ -1,13 +1,13 @@
-const generarInfoError = (product) => {
-  return `The data is incomplete or invalid.
-    We need to receive the following:
-    - Tittle: String, but we receive ${product.tittle}
-    - Description: String, but we receive ${product.description}
-    - Price: Number, but we receive ${product.price}
-    - Code: String, but we receive ${product.code}
-    - Stock: Number, but we receive ${product.stock}
-    - Category: String, but we receive ${product.category}
-    - Status: Boolean, but we receive ${product.status}`;
+const generarInfoError = (producto) => {
+  return ` Los datos estan incompletos o son invalidos. 
+        Necesitamos recibir lo siguiente: 
+        - Nombre: String, pero recibimos ${producto.title}
+        - Descripcion: String, pero recibimos ${producto.description}
+        - Precio: Number, pero recibimos ${producto.price}
+        - Codigo: String, pero recibimos ${producto.code}
+        - Stock: Number, pero recibimos ${producto.stock}
+        - Categoria: String, pero recibimos ${producto.category}
+    `;
 };
 
 module.exports = {

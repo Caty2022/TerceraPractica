@@ -11,6 +11,7 @@ class ProductRepository {
     stock,
     category,
     thumbnails,
+    owner,
   }) {
     try {
       if (!title || !description || !price || !code || !stock || !category) {
@@ -35,6 +36,8 @@ class ProductRepository {
         });
       }
 
+      console.log("Owner", owner);
+
       const newProduct = new ProductModel({
         title,
         description,
@@ -45,6 +48,7 @@ class ProductRepository {
         category,
         status: true,
         thumbnails: thumbnails || [],
+        owner,
       });
 
       await newProduct.save();

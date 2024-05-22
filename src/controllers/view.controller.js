@@ -1,64 +1,70 @@
-const ProductRepository = require("../repositories/product.repository.js");
-const productRepository = new ProductRepository();
+const ProductModel = require("../models/product.model.js");
 const CartRepository = require("../repositories/cart.repository.js");
 const cartRepository = new CartRepository();
-const ProductModel = require("../models/product.model.js");
+const { logger } = require("../config/logger.config.js");
 
-class ViewController {
-  async renderProducts(request, response) {
+class ViewsController {
+  async renderProducts(req, res) {
     try {
-      const { page = 1, limit = 3 } = request.query;
+      const { page = 1, limit = 6 } = req.query;
+
       const skip = (page - 1) * limit;
 
-      const products = await ProductModel.find().skip(skip).limit(limit);
+      const productos = await ProductModel.find().skip(skip).limit(limit);
 
       const totalProducts = await ProductModel.countDocuments();
+
       const totalPages = Math.ceil(totalProducts / limit);
 
       const hasPrevPage = page > 1;
       const hasNextPage = page < totalPages;
 
-      const newArray = products.map((product) => {
-        const { _id, ...rest } = product.toObject();
-        return rest;
+      const nuevoArray = productos.map((producto) => {
+        const { _id, ...rest } = producto.toObject();
+        return { id: _id, ...rest }; // Agregar el ID al objeto
       });
 
-      //const cartId = (request.user.cart).toString();
+      const cartId = req.user.cart.toString();
+      // console.log(cartId);
 
-      response.render("products", {
-        products: newArray,
-        hasPrevPage: products.hasPrevPage,
-        hasNextPage: products.hasNextPage,
+      res.render("products", {
+        productos: nuevoArray,
+        hasPrevPage,
+        hasNextPage,
         prevPage: page > 1 ? parseInt(page) - 1 : null,
         nextPage: page < totalPages ? parseInt(page) + 1 : null,
         currentPage: parseInt(page),
         totalPages,
-        //cartId,
-        user: request.session.user,
+        cartId,
       });
+      logger.info("Productos renderizados correctamente");
     } catch (error) {
-      console.log("Error getting products", error);
-      response.status(500).json({ error: "Server error" });
+      logger.error("Error al renderizar los productos:", error.message);
+      res.status(500).json({
+        status: "error",
+        error: "Error interno del servidor",
+      });
     }
   }
 
-  async renderCart(request, response) {
-    const cartId = request.params.cid;
-
+  async renderCart(req, res) {
+    const cartId = req.params.cid;
     try {
-      const cart = await cartRepository.getCartById(cartId);
+      const carrito = await cartRepository.obtenerProductosDeCarrito(cartId);
 
-      if (!cart) {
-        console.log(`Doesn't exists cart with id ${cartId}`);
-        return response.status(404).json({ error: "Cart not found" });
+      if (!carrito) {
+        console.log("No existe ese carrito con el id");
+        return res.status(404).json({ error: "Carrito no encontrado" });
       }
 
-      const productsInCart = cart.products.map((p) => {
-        const product = p.product.toObject();
-        const quantity = p.quantity;
-        const totalPrince = product.price * quantity;
+      let totalCompra = 0;
 
-        total += totalPrince;
+      const productosEnCarrito = carrito.products.map((item) => {
+        const product = item.product.toObject();
+        const quantity = item.quantity;
+        const totalPrice = product.price * quantity;
+
+        totalCompra += totalPrice;
 
         return {
           product: { ...product, totalPrice },
@@ -67,55 +73,67 @@ class ViewController {
         };
       });
 
-      response.render("carts", { products: productsInCart, total, cartId });
+      res.render("carts", {
+        productos: productosEnCarrito,
+        totalCompra,
+        cartId,
+      });
+      logger.info("Carrito renderizado correctamente");
     } catch (error) {
-      console.log("Error add a new cart", error);
-      response.status(500).json({ error: "Server error" });
+      logger.error("Error al renderizar el carrito:", error.message);
+      res.status(500).json({ error: "Error interno del servidor" });
     }
   }
 
-  async renderLogin(request, response) {
-    if (request.session.login) {
-      return response.redirect("/products");
-    }
-    response.render("login");
+  async renderLogin(req, res) {
+    res.render("login");
   }
 
-  async renderRegister(request, response) {
-    if (request.session.login) {
-      return response.redirect("/products");
-    }
-    response.render("register");
+  async renderRegister(req, res) {
+    res.render("register");
   }
 
-  async renderRealTimeProducts(request, response) {
+  async renderRealTimeProducts(req, res) {
+    const usuario = req.user;
     try {
-      response.render("realtimeproducts");
+      res.render("realtimeproducts", {
+        role: usuario.role,
+        email: usuario.email,
+      });
+      logger.info(
+        "Vista de productos en tiempo real renderizada correctamente"
+      );
     } catch (error) {
-      console.log("Error in view real time", error);
-      response.status(500).json({ error: "Server error" });
+      logger.error(
+        "Error al renderizar la vista de productos en tiempo real:",
+        error.message
+      );
+      res.status(500).json({ error: "Error interno del servidor" });
     }
   }
 
-  async renderChat(request, response) {
-    response.render("chat");
+  async renderChat(req, res) {
+    res.render("chat");
   }
 
-  async renderHome(request, response) {
-    response.render("home");
+  async renderHome(req, res) {
+    res.render("home");
+  }
+  async renderResetPassword(req, res) {
+    res.render("passwordreset");
   }
 
-  async renderResetPassword(request, response) {
-    response.render("passwordreset");
+  async renderCambioPassword(req, res) {
+    res.render("passwordcambio");
   }
 
-  async renderChangePassword(request, response) {
-    response.render("passwordchange");
+  async renderConfirmacion(req, res) {
+    res.render("confirmacion-envio");
   }
 
-  async renderConfirmation(request, response) {
-    response.render("confirmationsend");
+  async renderPremium(req, res) {
+    res.render("panel-premium");
   }
 }
 
-module.exports = ViewController;
+module.exports = ViewsController;

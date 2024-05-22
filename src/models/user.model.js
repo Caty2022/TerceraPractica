@@ -27,17 +27,15 @@ const userSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
-
   cart: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cart",
   },
-  rol: {
+  role: {
     type: String,
     enum: ["admin", "usuario", "premium"],
     default: "usuario",
   },
-
   resetToken: {
     token: String,
     expiresAt: Date,
