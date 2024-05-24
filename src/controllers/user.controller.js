@@ -89,7 +89,7 @@ class UserController {
         req.user.first_name,
         req.user.last_name,
         req.user.email,
-        req.user.role
+        req.user.rol
       );
       // Verificar si el usuario es administrador
       const isAdmin = req.user.role === "admin";

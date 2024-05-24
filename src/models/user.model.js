@@ -31,7 +31,7 @@ const userSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cart",
   },
-  role: {
+  rol: {
     type: String,
     enum: ["admin", "usuario", "premium"],
     default: "usuario",
